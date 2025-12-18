@@ -4,13 +4,13 @@ A high-performance REST API service for serving random jokes with built-in cachi
 
 ## 🚀 Features
 
-- **Random Joke API** - Get random jokes with Redis caching support
+- **Random Joke API** - Get random jokes with caching support
 - **Health Checks** - Readiness probes for Kubernetes deployments
 - **Rate Limiting** - Built-in request rate limiting with configurable thresholds
 - **Swagger Documentation** - Auto-generated API documentation
 - **Structured Logging** - JSON and text format logging with request tracking
 - **Docker Support** - Multi-stage Docker build for optimized production images
-- **Redis Caching** - Optional Redis integration for improved performance
+- **Caching** - Optional Caching integration for improved performance
 - **Configurable** - Extensive environment variable configuration
 
 ## 📋 Prerequisites
@@ -22,14 +22,14 @@ A high-performance REST API service for serving random jokes with built-in cachi
 ## 🛠️ Dependencies
 
 - **Fiber v2** - High-performance web framework for Go
-- **Redis Storage** - Redis support for Fiber storage
+- **Cache Storage** - Support for Fiber storage
 - **Swagger** - API documentation and UI
 
 See [go.mod](go.mod) for complete dependency list.
 
 ## 📁 Project Structure
 
-```
+```bash
 .
 ├── api/                 # API initialization and startup logic
 ├── config/              # Configuration and environment variable handling
@@ -83,7 +83,7 @@ See [go.mod](go.mod) for complete dependency list.
    - Download jokes data from CDN
    - Build the Jokes Provider application
    - Start the jokes-provider service on port 3000
-   - Start Redis for caching (if configured)
+   - Start redis-client for caching (if configured)
 
 2. **Stop services**
 
@@ -150,9 +150,14 @@ Configure the application using environment variables:
 
 ### Caching
 
-- `CACHE_URL` - Cache client Address
-- `CACHE_ENABLED` - Caching enabled/disabled (optional)
-- `CACHE_TTL` - Client Cache Timeout (optional)
+- `CACHE_URL` - Cache connection URL (default: `localhost`)
+  - Supports standard Cache URL format: `redis://[:password@]host[:port]/[db]`
+  - Supports TLS URLs: `rediss://[:password@]host[:port]/[db]`
+- `CACHE_ENABLED` - Enable/disable caching (default: `true`)
+- `CACHE_TTL` - Cache time-to-live duration (default: `5m`)
+- `CACHE_CA_CERT` - Path to Cache CA certificate file (optional, for TLS)
+- `CACHE_CLIENT_CERT` - Path to Cache client certificate file (optional, for mutual TLS)
+- `CACHE_CLIENT_KEY` - Path to Cache client key file (optional, for mutual TLS)
 
 ## 📊 Jokes Data Format
 
@@ -164,33 +169,43 @@ id,joke
 2,"How many programmers does it take..."
 ```
 
-Data is fetched from: https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/assets/data/jokes.csv
+Data is fetched from: <https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/assets/data/jokes.csv>
 
 ## 🔒 Features in Detail
 
-### Caching
-- Random jokes are cached in Redis when caching is enabled
+### Caching Strategy
+
+- Random jokes are cached in Cache client, such as Redis, when caching is enabled
+- Singleton Cache connection initialized at application startup
+- Connection reused across all cache operations for optimal performance
 - Cache hits return previously fetched jokes
 - Automatic cache invalidation based on TTL
+- **TLS Support**: Secure Cache connections with optional client certificates
+  - Set `CACHE_URL` to `rediss://` URL
+  - Provide certificate paths via `CACHE_CA_CERT`, `CACHE_CLIENT_CERT`, `CACHE_CLIENT_KEY`
 
-### Rate Limiting
+### Rate Limiting Strategy
+
 - Global rate limiter middleware to prevent abuse
 - Configurable per IP address
 - Returns `429 Too Many Requests` when limit exceeded
 
 ### Structured Logging
+
 - JSON formatted logs for better parsing
 - Request tracking with unique request IDs
 - Contextual information in all log entries
 
 ### Health Checks
+
 - Liveness probe validates the application status
-- Readiness probe validates dependencies (Redis, data files)
+- Readiness probe validates dependencies (Cache, data files)
 - Suitable for Kubernetes deployment health checks
 
 ## 🐳 Docker Deployment
 
 ### Build Docker Image
+
 ```bash
 docker build -t jokes-provider:1.0.0 \
   --build-arg BUILD_VERSION=1.0.0 \
@@ -198,6 +213,7 @@ docker build -t jokes-provider:1.0.0 \
 ```
 
 ### Run Docker Container
+
 ```bash
 docker run -p 3000:3000 \
   -e PORT=3000 \
@@ -209,7 +225,7 @@ docker run -p 3000:3000 \
 ## 📈 Performance Considerations
 
 - Multi-stage Docker build minimizes final image size
-- Redis caching reduces joke service response time
+- Caching reduces joke service response time
 - Rate limiting protects against abuse
 - Structured logging enables efficient monitoring
 
@@ -227,6 +243,7 @@ docker run -p 3000:3000 \
 - `router/` - Route registration
 
 ### Building Locally
+
 ```bash
 go build -o jokes-provider main.go
 ./jokes-provider
