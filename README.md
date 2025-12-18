@@ -112,39 +112,47 @@ See [go.mod](go.mod) for complete dependency list.
 Configure the application using environment variables:
 
 ### Server Configuration
+
 - `PORT` - Server port (default: `3000`)
 - `ENVIRONMENT` - Environment type (default: `development`)
 
 ### Logging
+
 - `LOG_LEVEL` - Log level: `debug`, `info`, `warn`, `error` (default: `info`)
 - `LOG_FORMAT` - Custom log format pattern (default: `[${ip}]:${port} ${status} - ${method} ${path}`)
 - `LOG_FORMAT_TYPE` - Format type: `json` or `text` (default: `text`)
 - `LOG_DISABLE_COLORS` - Disable colored output (default: `false`)
 
 ### Build Information
+
 - `BUILD_VERSION` - Application version (default: `dev`)
 - `BUILD_FLAVOR` - Build flavor (default: `development`)
 
 ### Fiber Configuration
+
 - `FIBER_PREFORK` - Enable prefork mode (default: `false`)
 - `FIBER_CASE_SENSITIVE` - Case-sensitive routing (default: `false`)
 - `FIBER_STRICT_ROUTING` - Strict routing (default: `false`)
 
 ### Files
+
 - `JOKES_FILE_PATH` - Path to jokes CSV file (default: `/data/jokes.csv`)
 
 ### Request Headers
+
 - `IP_HEADER_NAME` - Header name for client IP (default: `X-Forwarded-For`)
 - `COUNTRY_HEADER_NAME` - Header name for country (default: `X-Country-Name`)
 
 ### Rate Limiting
+
 - `RATE_LIMIT_MAX_REQUESTS` - Maximum requests per time window (default: `100`)
 - `RATE_LIMITER_EXPIRATION` - Rate limiter time window (default: `1m`)
 
 ### Caching
-- `REDIS_HOST` - Redis server host (optional)
-- `REDIS_PORT` - Redis server port (optional)
-- `REDIS_DB` - Redis database number (optional)
+
+- `CACHE_URL` - Cache client Address
+- `CACHE_ENABLED` - Caching enabled/disabled (optional)
+- `CACHE_TTL` - Client Cache Timeout (optional)
 
 ## 📊 Jokes Data Format
 

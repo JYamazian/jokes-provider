@@ -30,7 +30,7 @@ func MetadataHandler(c *fiber.Ctx) error {
 		},
 		"cache": fiber.Map{
 			"enabled": config.CacheConfig.CacheEnabled,
-			"host":    config.CacheConfig.CacheHost,
+			"url":     config.CacheConfig.CacheURL,
 			"ttl":     config.CacheConfig.CacheTTL,
 		},
 		"files": fiber.Map{

@@ -11,7 +11,7 @@ import (
 // CheckRedisStatus checks if Redis is accessible
 func CheckRedisStatus(c *fiber.Ctx) bool {
 	store := redis.New(redis.Config{
-		Host: config.CacheConfig.CacheHost,
+		URL: config.CacheConfig.CacheURL,
 	})
 	defer store.Close()
 

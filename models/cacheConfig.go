@@ -1,7 +1,7 @@
 package models
 
 type CacheConfig struct {
-	CacheHost    string
+	CacheURL     string
 	CacheEnabled bool
 	CacheTTL     string
 }
