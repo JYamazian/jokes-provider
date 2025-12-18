@@ -29,7 +29,7 @@ services:
       - FIBER_PREFORK=false
       - FIBER_CASE_SENSITIVE=false
       - FIBER_STRICT_ROUTING=false
-      - CACHE_HOST=redis
+      - CACHE_URL=redis
       - CACHE_ENABLED=true
       - CACHE_TTL=5m
       - RATE_LIMIT_MAX_REQUESTS=5

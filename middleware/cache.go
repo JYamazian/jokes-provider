@@ -11,7 +11,7 @@ import (
 // GetRedisStore creates and returns a Redis storage instance
 func GetRedisStore() *redis.Storage {
 	return redis.New(redis.Config{
-		URL: config.CacheConfig.CacheUrl,
+		URL: config.CacheConfig.CacheURL,
 	})
 }
 
