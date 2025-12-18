@@ -49,9 +49,12 @@ func LoadEnvVars() {
 	}
 
 	CacheConfig = &models.CacheConfig{
-		CacheURL:     getEnv("CACHE_URL", "localhost"),
-		CacheEnabled: getEnv("CACHE_ENABLED", "true") == "true",
-		CacheTTL:     getEnv("CACHE_TTL", "5m"),
+		CacheURL:            getEnv("CACHE_URL", "localhost"),
+		CacheEnabled:        getEnv("CACHE_ENABLED", "true") == "true",
+		CacheTTL:            getEnv("CACHE_TTL", "5m"),
+		CacheCaCertPath:     getEnv("CACHE_CA_CERT", ""),
+		CacheClientCertPath: getEnv("CACHE_CLIENT_CERT", ""),
+		CacheClientKeyPath:  getEnv("CACHE_CLIENT_KEY", ""),
 	}
 }
 

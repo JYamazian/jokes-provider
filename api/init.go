@@ -3,6 +3,7 @@ package api
 import (
 	"jokes-provider/config"
 	"jokes-provider/helpers"
+	"jokes-provider/middleware"
 	routes "jokes-provider/router"
 	"jokes-provider/services"
 
@@ -13,6 +14,11 @@ import (
 func Initialize() *fiber.App {
 	// Load environment variables
 	config.LoadEnvVars()
+
+	// Initialize Redis connection (singleton)
+	if err := middleware.InitRedis(); err != nil {
+		config.LogError(nil, "Failed to initialize Redis", "error", err.Error())
+	}
 
 	// Initialize Fiber app with config
 	app := config.InitializeApp()

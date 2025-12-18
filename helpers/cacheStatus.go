@@ -2,18 +2,15 @@ package helpers
 
 import (
 	"jokes-provider/config"
+	"jokes-provider/middleware"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/storage/redis"
 )
 
 // CheckRedisStatus checks if Redis is accessible
 func CheckRedisStatus(c *fiber.Ctx) bool {
-	store := redis.New(redis.Config{
-		URL: config.CacheConfig.CacheURL,
-	})
-	defer store.Close()
+	store := middleware.GetRedisStore()
 
 	// Try to set and get a test key
 	testKey := "health_check"
