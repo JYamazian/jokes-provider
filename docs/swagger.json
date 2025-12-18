@@ -1,0 +1,159 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Jokes Provider API",
+    "description": "A simple API that provides random jokes with caching and health checks",
+    "termsOfService": "http://swagger.io/terms/",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.example.com/support"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Returns the current health status of the API",
+        "tags": [
+          "health"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/HealthResponse"
+            }
+          }
+        }
+      }
+    },
+    "/readiness": {
+      "get": {
+        "summary": "Readiness check endpoint",
+        "description": "Returns the readiness status including dependency checks (Redis, jokes loaded)",
+        "tags": [
+          "health"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ReadinessResponse"
+            }
+          },
+          "503": {
+            "description": "Service unavailable",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/joke/random": {
+      "get": {
+        "summary": "Get a random joke",
+        "description": "Retrieves a random joke from the cache",
+        "tags": [
+          "jokes"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/JokeResponse"
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve joke",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "HealthResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Jokes Provider API is running"
+        },
+        "status": {
+          "type": "string",
+          "example": "healthy"
+        },
+        "time": {
+          "type": "string",
+          "example": "2024-12-18T10:30:00Z"
+        }
+      }
+    },
+    "ReadinessResponse": {
+      "type": "object",
+      "properties": {
+        "jokes_loaded": {
+          "type": "integer",
+          "example": 100
+        },
+        "ready": {
+          "type": "boolean",
+          "example": true
+        },
+        "redis": {
+          "type": "string",
+          "example": "connected"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Failed to retrieve joke"
+        }
+      }
+    },
+    "JokeResponse": {
+      "type": "object",
+      "properties": {
+        "ID": {
+          "type": "string",
+          "example": "1"
+        },
+        "punchline": {
+          "type": "string",
+          "example": "Because he was outstanding in his field!"
+        },
+        "setup": {
+          "type": "string",
+          "example": "Why did the scarecrow win an award?"
+        }
+      }
+    }
+  }
+}

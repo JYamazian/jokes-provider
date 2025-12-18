@@ -1,0 +1,76 @@
+services:
+  jokes-init:
+    image: curlimages/curl:latest
+    container_name: jokes-init
+    user: root
+    command: sh -c "mkdir -p /data && chmod 777 /data && curl -L -o /data/jokes.csv https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/assets/data/jokes.csv && chmod 644 /data/jokes.csv && ls -lh /data/jokes.csv"
+    volumes:
+      - jokes-data:/data
+    networks:
+      - jokes-network
+    restart: "no"
+
+  jokes-provider:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_VERSION: 1.0.0
+        BUILD_FLAVOR: dev
+    container_name: jokes-provider
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - ENVIRONMENT=development
+      - LOG_FORMAT_TYPE=json
+      - LOG_LEVEL=info
+      - LOG_FORMAT=$${pid} $${locals:requestid} $${status} - $${method} $${path}
+      - FIBER_PREFORK=false
+      - FIBER_CASE_SENSITIVE=false
+      - FIBER_STRICT_ROUTING=false
+      - CACHE_HOST=redis
+      - CACHE_ENABLED=true
+      - CACHE_TTL=5m
+      - RATE_LIMIT_MAX_REQUESTS=5
+      - RATE_LIMITER_EXPIRATION=1m
+      - JOKES_FILE_PATH=/data/jokes.csv
+      - IP_HEADER_NAME=X-Forwarded-For
+      - COUNTRY_HEADER_NAME=X-Country-Name
+    depends_on:
+      jokes-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    volumes:
+      - jokes-data:/data
+    networks:
+      - jokes-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health/liveness"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: jokes-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - jokes-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  jokes-network:
+    driver: bridge
+
+volumes:
+  jokes-data:
