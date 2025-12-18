@@ -93,68 +93,19 @@ See [go.mod](go.mod) for complete dependency list.
 
 ## 🔌 API Endpoints
 
-### Get Random Joke
-```
-GET /joke/random
-```
+### Jokes
 
-Returns a random joke with optional caching.
+- `GET /joke/random` - Returns a random joke with optional caching
 
-**Response (200 OK):**
-```json
-{
-  "id": "joke_id",
-  "joke": "Why did the programmer quit his job?",
-  "punchline": "He didn't get arrays.",
-  "source": "source_name"
-}
-```
+### Health Status
 
-### Health Check - Readiness
-```
-GET /health/readiness
-```
+- `GET /health/liveness` - Checks if the service is UP
+- `GET /health/readiness` - Checks if the service is ready (validates Redis and data availability)
 
-Checks if the service is ready to accept requests (validates Redis and jokes data availability).
+### Docs
 
-**Response (200 OK):**
-```json
-{
-  "ready": true
-}
-```
-
-**Response (503 Service Unavailable):**
-```json
-{
-  "ready": false,
-  "reason": "Redis unavailable"
-}
-```
-
-### Metadata
-```
-GET /metadata
-```
-
-Returns application metadata including version, build flavor, and statistics.
-
-**Response (200 OK):**
-```json
-{
-  "version": "1.0.0",
-  "flavor": "dev",
-  "totalJokes": 500,
-  "cacheEnabled": true
-}
-```
-
-### Swagger Documentation
-```
-GET /swagger/index.html
-```
-
-Interactive API documentation powered by Swagger UI.
+- `GET /swagger/index.html` - Interactive API documentation powered by Swagger UI
+- `GET /metadata` - Returns application metadata including app settings
 
 ## ⚙️ Configuration
 
@@ -200,9 +151,9 @@ Configure the application using environment variables:
 The jokes are loaded from a CSV file with the following format:
 
 ```csv
-id,joke,punchline,source
-1,"Why did the programmer quit?","He didn't get arrays.",github
-2,"How many programmers does it take...","None, that's a hardware problem.",stackoverflow
+id,joke
+1,"Why did the programmer quit?"
+2,"How many programmers does it take..."
 ```
 
 Data is fetched from: https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/assets/data/jokes.csv
@@ -225,6 +176,7 @@ Data is fetched from: https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/asse
 - Contextual information in all log entries
 
 ### Health Checks
+- Liveness probe validates the application status
 - Readiness probe validates dependencies (Redis, data files)
 - Suitable for Kubernetes deployment health checks
 
