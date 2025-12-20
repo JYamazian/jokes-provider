@@ -9,7 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetRandomJoke reads a random joke directly from the CSV file
 func GetRandomJoke(c *fiber.Ctx) (map[string]string, error) {
 	file, err := os.Open(config.AppConfig.JokesFilePath)
 	if err != nil {

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"jokes-provider/config"
 	"jokes-provider/helpers"
 	"jokes-provider/middleware"
@@ -11,41 +12,67 @@ import (
 )
 
 // Initialize sets up and returns a configured Fiber application
-func Initialize() *fiber.App {
-	// Load environment variables
+func Initialize() (*fiber.App, error) {
 	config.LoadEnvVars()
 
-	// Initialize Redis connection (singleton)
-	if err := middleware.InitRedis(); err != nil {
-		config.LogError(nil, "Failed to initialize Redis", "error", err.Error())
-	}
+	app := fiber.New(fiber.Config{
+		Prefork:       config.FiberConfig.Prefork,
+		CaseSensitive: config.FiberConfig.CaseSensitive,
+		StrictRouting: config.FiberConfig.StrictRouting,
+		ServerHeader:  "Go Fiber - Jokes Provider",
+		AppName:       "Jokes Provider API",
+	})
 
-	// Initialize Fiber app with config
-	app := config.InitializeApp()
-
-	// Log startup information with build details
+	config.InitializeLogger(app)
 	config.LogStartupInfo(config.AppConfig.Version, config.AppConfig.Flavor)
 
-	// Load jokes from CSV
-	if err := helpers.LoadJokesFromCSV(nil, config.AppConfig.JokesFilePath); err != nil {
-		config.LogError(nil, "Warning: Could not load jokes from CSV", "error", err.Error())
+	if err := initRedis(); err != nil {
+		return nil, err
 	}
 
-	// Setup rate limiter middleware globally
+	if err := initJokesData(); err != nil {
+		return nil, err
+	}
+
+	initMiddleware(app)
+	routes.RegisterRoutes(app)
+
+	return app, nil
+}
+
+// initRedis initializes the Redis connection
+func initRedis() error {
+	if err := middleware.InitRedis(); err != nil {
+		config.LogError(nil, "Failed to initialize Redis connection", "error", err.Error())
+		return fmt.Errorf("redis initialization failed: %w", err)
+	}
+	return nil
+}
+
+// initJokesData loads jokes from CSV file
+func initJokesData() error {
+	if err := helpers.LoadJokesFromCSV(nil, config.AppConfig.JokesFilePath); err != nil {
+		config.LogError(nil, "Failed to load jokes data", "error", err.Error())
+		return fmt.Errorf("jokes data loading failed: %w", err)
+	}
+	return nil
+}
+
+// initMiddleware sets up all middleware
+func initMiddleware(app *fiber.App) {
 	app.Use(services.SetupRateLimiter())
-
-	// Setup Swagger middleware first
-	routes.SwaggerRoute(app)
-
-	// Register all route groups from routes package
-	routes.HealthRoute(app)
-	routes.JokeRoute(app)
-	routes.MetadataRoute(app)
-
-	return app
 }
 
 // Start starts the Fiber application server
 func Start(app *fiber.App) error {
 	return app.Listen(":" + config.AppConfig.Port)
+}
+
+// Shutdown gracefully shuts down the application
+func Shutdown() error {
+	if err := middleware.CloseRedis(); err != nil {
+		config.LogError(nil, "Error closing Redis", "error", err.Error())
+		return err
+	}
+	return nil
 }

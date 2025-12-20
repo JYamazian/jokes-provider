@@ -4,6 +4,7 @@ type AppConfig struct {
 	// Server configuration
 	Port        string
 	Environment string
+	AppHost     string
 
 	// Logging configuration
 	LogLevel         string
@@ -23,9 +24,7 @@ type AppConfig struct {
 	CountryHeaderName string
 
 	// Rate limiter configuration
+	RateLimitEnabled     bool
 	RateLimitMaxRequests int
 	RateLimitDuration    string
-
-	// Fiber configuration
-	FiberConfig FiberConfig
 }

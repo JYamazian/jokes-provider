@@ -7,13 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// FileExists checks if a file exists at the given path
 func FileExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil
 }
 
-// ReadCSV reads a CSV file and returns records as a slice of string slices
 func ReadCSV(c *fiber.Ctx, filePath string) ([][]string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -33,7 +31,6 @@ func ReadCSV(c *fiber.Ctx, filePath string) ([][]string, error) {
 	return records, nil
 }
 
-// ReadCSVWithHeaders reads a CSV file and returns records as a slice of maps with headers as keys
 func ReadCSVWithHeaders(c *fiber.Ctx, filePath string) ([]map[string]string, error) {
 	records, err := ReadCSV(c, filePath)
 	if err != nil {

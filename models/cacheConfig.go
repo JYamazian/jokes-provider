@@ -1,5 +1,6 @@
 package models
 
+// Cache configuration
 type CacheConfig struct {
 	CacheURL            string
 	CacheEnabled        bool

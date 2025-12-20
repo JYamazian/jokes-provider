@@ -5,23 +5,27 @@ import (
 	"jokes-provider/config"
 	"jokes-provider/helpers"
 	"jokes-provider/middleware"
-	"path"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetRandomJokeHandler handles requests for a random joke with caching
-func GetRandomJokeHandler(c *fiber.Ctx) error {
-	cacheKey := path.Base(c.Path())
+// JokeService handles joke business logic
+type JokeService struct{}
 
-	// Try to get from cache first using middleware if enabled
+// NewJokeService creates a new JokeService instance
+func NewJokeService() *JokeService {
+	return &JokeService{}
+}
+
+// GetRandomJoke retrieves a random joke with caching support
+func (s *JokeService) GetRandomJoke(c *fiber.Ctx, cacheKey string) (map[string]string, error) {
+	// Try to get from cache first if enabled
 	if config.CacheConfig.CacheEnabled {
 		cachedJoke, err := middleware.GetFromCache(c, cacheKey)
 		if err == nil && cachedJoke != nil {
-			// Cache hit - deserialize and return
 			var joke map[string]string
 			if err := json.Unmarshal(cachedJoke, &joke); err == nil {
-				return c.Status(fiber.StatusOK).JSON(joke)
+				return joke, nil
 			}
 		}
 	}
@@ -29,27 +33,21 @@ func GetRandomJokeHandler(c *fiber.Ctx) error {
 	// Cache miss - get a new random joke
 	joke, err := helpers.GetRandomJoke(c)
 	if err != nil {
-		config.LogError(c, "Error retrieving random joke", "error", err.Error())
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to retrieve joke",
-		})
+		return nil, err
 	}
 
-	// Set in cache using middleware if enabled
+	// Set in cache if enabled
 	if config.CacheConfig.CacheEnabled {
-		// Marshal joke to JSON for caching
 		jokeJSON, err := json.Marshal(joke)
 		if err != nil {
 			config.LogError(c, "Error marshaling joke for cache", "error", err.Error())
-			return c.Status(fiber.StatusOK).JSON(joke)
+			return joke, nil
 		}
 
-		// Set in cache using middleware
 		if err := middleware.SetToCache(c, cacheKey, jokeJSON); err != nil {
-			// Cache failure is non-blocking - still return the joke
 			config.LogInfo(c, "Returning joke despite cache error")
 		}
 	}
 
-	return c.Status(fiber.StatusOK).JSON(joke)
+	return joke, nil
 }
