@@ -32,6 +32,7 @@ services:
       - CACHE_URL=redis://redis:6379/1
       - CACHE_ENABLED=true
       - CACHE_TTL=5m
+      - RATE_LIMIT_ENABLED=false
       - RATE_LIMIT_MAX_REQUESTS=5
       - RATE_LIMITER_EXPIRATION=1m
       - JOKES_FILE_PATH=/data/jokes.csv

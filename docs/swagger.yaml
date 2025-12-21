@@ -1,0 +1,240 @@
+basePath: /
+definitions:
+  models.AppInfo:
+    properties:
+      flavor:
+        type: string
+      name:
+        type: string
+      version:
+        type: string
+    type: object
+  models.CacheInfo:
+    properties:
+      enabled:
+        type: boolean
+      ttl:
+        type: string
+      url:
+        type: string
+    type: object
+  models.FiberInfo:
+    properties:
+      case_sensitive:
+        type: boolean
+      prefork:
+        type: boolean
+      strict_routing:
+        type: boolean
+    type: object
+  models.FilesInfo:
+    properties:
+      jokes_path:
+        type: string
+    type: object
+  models.HeadersInfo:
+    properties:
+      country_header_name:
+        type: string
+      ip_header_name:
+        type: string
+    type: object
+  models.Joke:
+    properties:
+      id:
+        type: string
+      joke:
+        type: string
+    type: object
+  models.LoggingInfo:
+    properties:
+      disable_colors:
+        type: string
+      format:
+        type: string
+      format_type:
+        type: string
+      level:
+        type: string
+    type: object
+  models.Metadata:
+    properties:
+      app:
+        $ref: '#/definitions/models.AppInfo'
+      cache:
+        $ref: '#/definitions/models.CacheInfo'
+      fiber:
+        $ref: '#/definitions/models.FiberInfo'
+      files:
+        $ref: '#/definitions/models.FilesInfo'
+      headers:
+        $ref: '#/definitions/models.HeadersInfo'
+      logging:
+        $ref: '#/definitions/models.LoggingInfo'
+      rate_limiter:
+        $ref: '#/definitions/models.RateLimiterInfo'
+      server:
+        $ref: '#/definitions/models.ServerInfo'
+    type: object
+  models.RateLimiterInfo:
+    properties:
+      duration:
+        type: string
+      enabled:
+        type: boolean
+      max_requests:
+        type: integer
+    type: object
+  models.ReadinessHealthStatus:
+    properties:
+      csv:
+        type: string
+      ready:
+        type: boolean
+      reason:
+        type: string
+      redis:
+        type: string
+    type: object
+  models.ServerInfo:
+    properties:
+      environment:
+        type: string
+      port:
+        type: string
+      timestamp:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8080
+info:
+  contact:
+    email: jeanyamazian@outlook.com
+    name: Jean Yamazian
+    url: https://jean.yamazian.com
+  description: A high-performance REST API service for serving random jokes with built-in
+    caching, rate limiting, and health checks.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Jokes Provider API
+  version: "1.0"
+paths:
+  /api/v1/metadata:
+    get:
+      consumes:
+      - application/json
+      description: Returns comprehensive application metadata including version, configuration,
+        and environment information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Application metadata
+          schema:
+            $ref: '#/definitions/models.Metadata'
+      summary: Get application metadata
+      tags:
+      - metadata
+  /health/liveness:
+    get:
+      description: Simple liveness probe to check if the service is running (uses
+        Fiber built-in)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Liveness probe
+      tags:
+      - health
+  /health/readiness:
+    get:
+      consumes:
+      - application/json
+      description: Checks if the service is ready and dependencies are available (Redis,
+        CSV file)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is ready
+          schema:
+            $ref: '#/definitions/models.ReadinessHealthStatus'
+        "503":
+          description: Service is not ready
+          schema:
+            $ref: '#/definitions/models.ReadinessHealthStatus'
+      summary: Readiness check
+      tags:
+      - health
+  /v1/jokes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a specific joke by its ID from the jokes database. Supports
+        caching.
+      parameters:
+      - description: Joke ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Joke object with id and joke fields
+          schema:
+            $ref: '#/definitions/models.Joke'
+        "400":
+          description: Joke ID is required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Joke not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve joke
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a joke by ID
+      tags:
+      - jokes
+  /v1/jokes/random:
+    get:
+      consumes:
+      - application/json
+      description: Returns a random joke from the jokes database. Supports caching.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Random joke object with id and joke fields
+          schema:
+            $ref: '#/definitions/models.Joke'
+        "500":
+          description: Failed to retrieve joke
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a random joke
+      tags:
+      - jokes
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

@@ -2,54 +2,58 @@ package services
 
 import (
 	"jokes-provider/config"
+	"jokes-provider/models"
 	"time"
-
-	"github.com/gofiber/fiber/v2"
 )
 
-// MetadataHandler returns application metadata and configuration
-func MetadataHandler(c *fiber.Ctx) error {
-	config.LogInfo(c, "Metadata requested")
+// MetadataService handles metadata business logic
+type MetadataService struct{}
 
-	metadata := fiber.Map{
-		"app": fiber.Map{
-			"name":    "Jokes Provider API",
-			"version": config.AppConfig.Version,
-			"flavor":  config.AppConfig.Flavor,
+// NewMetadataService creates a new MetadataService instance
+func NewMetadataService() *MetadataService {
+	return &MetadataService{}
+}
+
+// GetMetadata returns the application metadata
+func (s *MetadataService) GetMetadata() models.Metadata {
+	return models.Metadata{
+		App: models.AppInfo{
+			Name:    "Jokes Provider API",
+			Version: config.AppConfig.Version,
+			Flavor:  config.AppConfig.Flavor,
 		},
-		"server": fiber.Map{
-			"port":        config.AppConfig.Port,
-			"environment": config.AppConfig.Environment,
-			"timestamp":   time.Now().Format(time.RFC3339),
+		Server: models.ServerInfo{
+			Port:        config.AppConfig.Port,
+			Environment: config.AppConfig.Environment,
+			Timestamp:   time.Now().Format(time.RFC3339),
 		},
-		"logging": fiber.Map{
-			"level":          config.AppConfig.LogLevel,
-			"format":         config.AppConfig.LogFormat,
-			"format_type":    config.AppConfig.LogFormatType,
-			"disable_colors": config.AppConfig.LogDisableColors,
+		Logging: models.LoggingInfo{
+			Level:         config.AppConfig.LogLevel,
+			Format:        config.AppConfig.LogFormat,
+			FormatType:    config.AppConfig.LogFormatType,
+			DisableColors: config.AppConfig.LogDisableColors,
 		},
-		"cache": fiber.Map{
-			"enabled": config.CacheConfig.CacheEnabled,
-			"url":     config.CacheConfig.CacheURL,
-			"ttl":     config.CacheConfig.CacheTTL,
+		Cache: models.CacheInfo{
+			Enabled: config.CacheConfig.CacheEnabled,
+			URL:     config.CacheConfig.CacheURL,
+			TTL:     config.CacheConfig.CacheTTL,
 		},
-		"files": fiber.Map{
-			"jokes_path": config.AppConfig.JokesFilePath,
+		Files: models.FilesInfo{
+			JokesPath: config.AppConfig.JokesFilePath,
 		},
-		"headers": fiber.Map{
-			"ip_header_name":      config.AppConfig.IPHeaderName,
-			"country_header_name": config.AppConfig.CountryHeaderName,
+		Headers: models.HeadersInfo{
+			IPHeaderName:      config.AppConfig.IPHeaderName,
+			CountryHeaderName: config.AppConfig.CountryHeaderName,
 		},
-		"rate_limiter": fiber.Map{
-			"max_requests": config.AppConfig.RateLimitMaxRequests,
-			"duration":     config.AppConfig.RateLimitDuration,
+		RateLimiter: models.RateLimiterInfo{
+			Enabled:     config.AppConfig.RateLimitEnabled,
+			MaxRequests: config.AppConfig.RateLimitMaxRequests,
+			Duration:    config.AppConfig.RateLimitDuration,
 		},
-		"fiber": fiber.Map{
-			"prefork":        config.AppConfig.FiberConfig.Prefork,
-			"case_sensitive": config.AppConfig.FiberConfig.CaseSensitive,
-			"strict_routing": config.AppConfig.FiberConfig.StrictRouting,
+		Fiber: models.FiberInfo{
+			Prefork:       config.FiberConfig.Prefork,
+			CaseSensitive: config.FiberConfig.CaseSensitive,
+			StrictRouting: config.FiberConfig.StrictRouting,
 		},
 	}
-
-	return c.Status(fiber.StatusOK).JSON(metadata)
 }

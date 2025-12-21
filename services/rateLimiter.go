@@ -2,6 +2,7 @@ package services
 
 import (
 	"jokes-provider/config"
+	"jokes-provider/utils"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,10 +10,16 @@ import (
 )
 
 func SetupRateLimiter() fiber.Handler {
-	expiration := config.GetDurationFromEnv("RATE_LIMITER_EXPIRATION", 1*time.Minute)
+	if config.AppConfig.RateLimitEnabled == false {
+		config.LogInfo(nil, "Rate limiter is disabled")
+		return func(c *fiber.Ctx) error {
+			return c.Next()
+		}
+	}
+	expiration := utils.GetDurationFromEnv(config.AppConfig.RateLimitDuration, 1*time.Minute)
 	maxRequests := config.AppConfig.RateLimitMaxRequests
 
-	config.LogInfo(nil, "Rate limiter initialized", "max_requests", maxRequests, "expiration", expiration)
+	config.LogInfo(nil, "Rate limiter initialized", "max_requests", maxRequests, "expiration(ns)", expiration)
 
 	return limiter.New(limiter.Config{
 		Max:        maxRequests,

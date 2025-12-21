@@ -3,36 +3,54 @@ package services
 import (
 	"jokes-provider/config"
 	"jokes-provider/helpers"
+	"jokes-provider/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 )
 
-// ReadinessHandler handles readiness check requests (checks dependencies)
-func ReadinessHandler(c *fiber.Ctx) error {
-	config.LogInfo(c, "Readiness check called")
+// HealthService handles health check business logic
+type HealthService struct{}
 
+// NewHealthService creates a new HealthService instance
+func NewHealthService() *HealthService {
+	return &HealthService{}
+}
+
+// CheckReadiness checks if the service is ready
+func (s *HealthService) CheckReadiness(c *fiber.Ctx) models.ReadinessHealthStatus {
 	// Check Redis status
 	if !helpers.CheckRedisStatus(c) {
 		config.LogError(c, "Readiness check failed: Redis unavailable")
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"ready":  false,
-			"reason": "Redis unavailable",
-		})
+		return models.ReadinessHealthStatus{
+			Ready:  false,
+			Reason: "Redis unavailable",
+		}
 	}
 
 	// Check if CSV file is accessible
 	if !config.FileExists(config.AppConfig.JokesFilePath) {
 		config.LogError(c, "Readiness check failed: Jokes CSV file not accessible", "path", config.AppConfig.JokesFilePath)
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
-			"ready":  false,
-			"reason": "Jokes CSV file not accessible",
-		})
+		return models.ReadinessHealthStatus{
+			Ready:  false,
+			Reason: "Jokes CSV file not accessible",
+		}
 	}
 
 	config.LogInfo(c, "Readiness check passed")
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"ready": true,
-		"redis": "connected",
-		"csv":   "accessible",
+	return models.ReadinessHealthStatus{
+		Ready: true,
+		Redis: "connected",
+		CSV:   "accessible",
+	}
+}
+
+// SetupLivenessProbe returns Fiber's built-in healthcheck middleware for liveness
+func (s *HealthService) SetupLivenessProbe(endpoint string) fiber.Handler {
+	return healthcheck.New(healthcheck.Config{
+		LivenessProbe: func(c *fiber.Ctx) bool {
+			return true
+		},
+		LivenessEndpoint: endpoint,
 	})
 }

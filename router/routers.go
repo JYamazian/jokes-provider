@@ -1,27 +1,41 @@
 package routes
 
 import (
+	"jokes-provider/controllers"
 	"jokes-provider/services"
+	"jokes-provider/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// JokeRoute registers all joke-related routes
-func JokeRoute(app *fiber.App) {
-	app.Get("/joke/random", services.GetRandomJokeHandler)
-}
+// RegisterRoutes registers all routes with controllers
+func RegisterRoutes(app *fiber.App) {
+	// Initialize controllers
+	jokeCtrl := controllers.NewJokeController()
+	healthCtrl := controllers.NewHealthController()
+	metadataCtrl := controllers.NewMetadataController()
 
-// HealthRoute registers health-related routes (readiness only, liveness handled by middleware)
-func HealthRoute(app *fiber.App) {
-	app.Get("/health/readiness", services.ReadinessHandler)
-}
+	// API v1 group
+	v1 := app.Group(utils.APIVersionV1)
+	{
+		// Jokes group
+		jokes := v1.Group(utils.RouteJokes)
+		{
+			jokes.Get(utils.RandomJokeEndpoint, jokeCtrl.GetRandomJoke)
+			jokes.Get(utils.JokeByIDEndpoint, jokeCtrl.GetJokeByID)
+		}
 
-// MetadataRoute registers metadata endpoint
-func MetadataRoute(app *fiber.App) {
-	app.Get("/metadata", services.MetadataHandler)
-}
+		// Metadata group
+		v1.Get(utils.MetadataEndpoint, metadataCtrl.GetMetadata)
+	}
 
-// SwaggerRoute sets up swagger middleware
-func SwaggerRoute(app *fiber.App) {
+	// Health group (outside API versioning)
+	health := app.Group(utils.RouteHealth)
+	{
+		health.Get(utils.ReadinessEndpoint, healthCtrl.Readiness)
+		health.Use(healthCtrl.SetupLivenessProbe(utils.LivenessEndpoint))
+	}
+
+	// Swagger
 	services.SetupSwagger(app)
 }

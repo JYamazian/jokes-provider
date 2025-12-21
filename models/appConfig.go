@@ -23,9 +23,7 @@ type AppConfig struct {
 	CountryHeaderName string
 
 	// Rate limiter configuration
+	RateLimitEnabled     bool
 	RateLimitMaxRequests int
 	RateLimitDuration    string
-
-	// Fiber configuration
-	FiberConfig FiberConfig
 }

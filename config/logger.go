@@ -4,25 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"jokes-provider/models"
+	"jokes-provider/utils"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 )
 
-// ContextLogger wraps models.ContextLogger to allow defining methods
 type ContextLogger struct {
 	*models.ContextLogger
 }
 
-// contextLogger is the global logger instance
 var contextLogger *ContextLogger
 
-// NewContextLogger creates a new context logger
 func NewContextLogger(format string) *ContextLogger {
 	return &ContextLogger{
 		ContextLogger: &models.ContextLogger{
@@ -32,7 +29,6 @@ func NewContextLogger(format string) *ContextLogger {
 	}
 }
 
-// LogWithContext logs a message with Fiber context information
 func (cl *ContextLogger) LogWithContext(c *fiber.Ctx, level string, message string, fields ...interface{}) {
 	entry := &models.LogEntry{
 		Timestamp: time.Now().Format(time.RFC3339),
@@ -40,16 +36,13 @@ func (cl *ContextLogger) LogWithContext(c *fiber.Ctx, level string, message stri
 		Message:   message,
 	}
 
-	// Only access context if it's not nil
 	if c != nil {
-		// Check for forwarded IP first, then fall back to direct IP
 		if forwardedFor := c.Get(AppConfig.IPHeaderName); forwardedFor != "" {
 			entry.IPAddress = forwardedFor
 		} else {
 			entry.IPAddress = c.IP()
 		}
 
-		// Check for country name header
 		if country := c.Get(AppConfig.CountryHeaderName); country != "" {
 			entry.Country = country
 		}
@@ -59,14 +52,13 @@ func (cl *ContextLogger) LogWithContext(c *fiber.Ctx, level string, message stri
 		}
 	}
 
-	if cl.Format == "json" {
+	if cl.ContextLogger.Format == "json" {
 		cl.logJSON(entry, fields...)
 	} else {
 		cl.printTextFormat(entry, fields...)
 	}
 }
 
-// logJSON logs entry as JSON with additional structured fields
 func (cl *ContextLogger) logJSON(entry *models.LogEntry, fields ...interface{}) {
 	logMap := map[string]interface{}{
 		"timestamp": entry.Timestamp,
@@ -96,10 +88,9 @@ func (cl *ContextLogger) logJSON(entry *models.LogEntry, fields ...interface{}) 
 	}
 
 	jsonData, _ := json.Marshal(logMap)
-	cl.Logger.Println(string(jsonData))
+	cl.ContextLogger.Logger.Println(string(jsonData))
 }
 
-// printTextFormat formats and prints log entry as text with structured fields
 func (cl *ContextLogger) printTextFormat(entry *models.LogEntry, fields ...interface{}) {
 	logMsg := fmt.Sprintf("[%s] [%s]", entry.Timestamp, entry.Level)
 	if entry.RequestID != "" {
@@ -128,25 +119,15 @@ func (cl *ContextLogger) printTextFormat(entry *models.LogEntry, fields ...inter
 		}
 	}
 
-	cl.Logger.Println(logMsg)
+	cl.ContextLogger.Logger.Println(logMsg)
 }
 
-// InitializeLogger configures logging middleware for the Fiber app
 func InitializeLogger(app *fiber.App) {
 	app.Use(requestid.New())
 
-	logFormat := getEnv("LOG_FORMAT_TYPE", "text")
+	logFormat := utils.GetEnv("LOG_FORMAT_TYPE", "text")
 	contextLogger = NewContextLogger(logFormat)
 
-	// Setup Fiber healthcheck middleware for liveness probe
-	app.Use(healthcheck.New(healthcheck.Config{
-		LivenessProbe: func(c *fiber.Ctx) bool {
-			return true
-		},
-		LivenessEndpoint: "/health/liveness",
-	}))
-
-	// Setup Fiber logger middleware
 	if logFormat == "json" {
 		app.Use(logger.New(logger.Config{
 			Format: "${time_rfc3339} | ${status} | ${latency} | ${ip} | ${method} | ${path} | ${error}\n",
@@ -160,23 +141,18 @@ func InitializeLogger(app *fiber.App) {
 	}
 }
 
-// LogInfo logs an info message with Fiber context
 func LogInfo(c *fiber.Ctx, message string, fields ...interface{}) {
 	contextLogger.LogWithContext(c, "INFO", message, fields...)
 }
 
-// LogError logs an error message with Fiber context
 func LogError(c *fiber.Ctx, message string, fields ...interface{}) {
 	contextLogger.LogWithContext(c, "ERROR", message, fields...)
 }
 
-// LogDebug logs a debug message with Fiber context
 func LogDebug(c *fiber.Ctx, message string, fields ...interface{}) {
 	contextLogger.LogWithContext(c, "DEBUG", message, fields...)
 }
 
-// LogStartupInfo logs startup information using Fiber's logger
 func LogStartupInfo(version, flavor string) {
-	// Use the context logger to log startup info with structured fields
 	LogInfo(nil, "Application started", "version", version, "flavor", flavor, "environment", AppConfig.Environment, "port", AppConfig.Port)
 }

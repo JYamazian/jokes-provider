@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"jokes-provider/config"
+	"jokes-provider/utils"
 	"os"
 	"time"
 
@@ -13,7 +14,22 @@ import (
 
 var redisStore *redis.Storage
 
-// GetRedisConfig creates and returns a Redis storage configuration with TLS support
+func InitRedis() error {
+	redisStore = redis.New(GetRedisConfig())
+	return nil
+}
+
+func GetRedisStore() *redis.Storage {
+	return redisStore
+}
+
+func CloseRedis() error {
+	if redisStore != nil {
+		return redisStore.Close()
+	}
+	return nil
+}
+
 func GetRedisConfig() redis.Config {
 	cfg := redis.Config{
 		URL: config.CacheConfig.CacheURL,
@@ -50,33 +66,7 @@ func GetRedisConfig() redis.Config {
 	return cfg
 }
 
-// InitRedis initializes the Redis connection once at app startup
-func InitRedis() error {
-	redisStore = redis.New(GetRedisConfig())
-	return nil
-}
-
-// GetRedisStore returns the already-initialized Redis connection (singleton)
-func GetRedisStore() *redis.Storage {
-	return redisStore
-}
-
-// CloseRedis closes the Redis connection (call on app shutdown)
-func CloseRedis() error {
-	if redisStore != nil {
-		return redisStore.Close()
-	}
-	return nil
-}
-
-// GetFromCache retrieves a value from Redis cache if caching is enabled
 func GetFromCache(c *fiber.Ctx, key string) ([]byte, error) {
-	// Check if caching is enabled
-	if !config.CacheConfig.CacheEnabled {
-		config.LogInfo(c, "Cache is disabled, skipping retrieval")
-		return nil, nil
-	}
-
 	store := GetRedisStore()
 
 	val, err := store.Get(key)
@@ -94,18 +84,11 @@ func GetFromCache(c *fiber.Ctx, key string) ([]byte, error) {
 	return val, nil
 }
 
-// SetToCache stores a value in Redis cache with TTL if caching is enabled
 func SetToCache(c *fiber.Ctx, key string, value []byte) error {
-	// Check if caching is enabled
-	if !config.CacheConfig.CacheEnabled {
-		config.LogInfo(c, "Cache is disabled, skipping set")
-		return nil
-	}
-
 	store := GetRedisStore()
 
 	// Convert TTL string to time.Duration (supports 5m, 1h, 30s, etc.)
-	ttl := config.GetDurationFromEnv("CACHE_TTL", 5*time.Minute)
+	ttl := utils.GetDurationFromEnv(config.CacheConfig.CacheTTL, 5*time.Minute)
 
 	if err := store.Set(key, value, ttl); err != nil {
 		config.LogError(c, "Error setting cache", "cache_key", key, "ttl", config.CacheConfig.CacheTTL, "error", err.Error())
