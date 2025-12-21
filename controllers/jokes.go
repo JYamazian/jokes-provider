@@ -53,6 +53,7 @@ func (ctrl *JokeController) GetRandomJoke(c *fiber.Ctx) error {
 // @Produce      json
 // @Param        id   path      string  true  "Joke ID"
 // @Success      200  {object}  models.Joke  "Joke object with id and joke fields"
+// @Failure      400  {object}  map[string]string  "Joke ID is required"
 // @Failure      404  {object}  map[string]string  "Joke not found"
 // @Failure      500  {object}  map[string]string  "Failed to retrieve joke"
 // @Router       /v1/jokes/{id} [get]

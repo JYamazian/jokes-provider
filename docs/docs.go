@@ -157,6 +157,15 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Joke"
                         }
                     },
+                    "400": {
+                        "description": "Joke ID is required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Joke not found",
                         "schema": {
@@ -304,6 +313,9 @@ const docTemplate = `{
                 "duration": {
                     "type": "string"
                 },
+                "enabled": {
+                    "type": "boolean"
+                },
                 "max_requests": {
                     "type": "integer"
                 }
@@ -356,7 +368,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api/v1",
+	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "Jokes Provider API",
 	Description:      "A high-performance REST API service for serving random jokes with built-in caching, rate limiting, and health checks.",

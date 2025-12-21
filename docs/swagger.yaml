@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /
 definitions:
   models.AppInfo:
     properties:
@@ -80,6 +80,8 @@ definitions:
     properties:
       duration:
         type: string
+      enabled:
+        type: boolean
       max_requests:
         type: integer
     type: object
@@ -190,6 +192,12 @@ paths:
           description: Joke object with id and joke fields
           schema:
             $ref: '#/definitions/models.Joke'
+        "400":
+          description: Joke ID is required
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Joke not found
           schema:

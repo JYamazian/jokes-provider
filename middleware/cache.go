@@ -67,12 +67,6 @@ func GetRedisConfig() redis.Config {
 }
 
 func GetFromCache(c *fiber.Ctx, key string) ([]byte, error) {
-	// Check if caching is enabled
-	if !config.CacheConfig.CacheEnabled {
-		config.LogInfo(c, "Cache is disabled, skipping retrieval")
-		return nil, nil
-	}
-
 	store := GetRedisStore()
 
 	val, err := store.Get(key)
@@ -91,12 +85,6 @@ func GetFromCache(c *fiber.Ctx, key string) ([]byte, error) {
 }
 
 func SetToCache(c *fiber.Ctx, key string, value []byte) error {
-	// Check if caching is enabled
-	if !config.CacheConfig.CacheEnabled {
-		config.LogInfo(c, "Cache is disabled, skipping set")
-		return nil
-	}
-
 	store := GetRedisStore()
 
 	// Convert TTL string to time.Duration (supports 5m, 1h, 30s, etc.)

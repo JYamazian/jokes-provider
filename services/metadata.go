@@ -46,6 +46,7 @@ func (s *MetadataService) GetMetadata() models.Metadata {
 			CountryHeaderName: config.AppConfig.CountryHeaderName,
 		},
 		RateLimiter: models.RateLimiterInfo{
+			Enabled:     config.AppConfig.RateLimitEnabled,
 			MaxRequests: config.AppConfig.RateLimitMaxRequests,
 			Duration:    config.AppConfig.RateLimitDuration,
 		},

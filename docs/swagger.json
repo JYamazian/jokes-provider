@@ -16,7 +16,7 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
-    "basePath": "/api/v1",
+    "basePath": "/",
     "paths": {
         "/api/v1/metadata": {
             "get": {
@@ -149,6 +149,15 @@
                         "description": "Joke object with id and joke fields",
                         "schema": {
                             "$ref": "#/definitions/models.Joke"
+                        }
+                    },
+                    "400": {
+                        "description": "Joke ID is required",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "404": {
@@ -297,6 +306,9 @@
             "properties": {
                 "duration": {
                     "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
                 },
                 "max_requests": {
                     "type": "integer"

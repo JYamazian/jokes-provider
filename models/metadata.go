@@ -47,6 +47,7 @@ type HeadersInfo struct {
 }
 
 type RateLimiterInfo struct {
+	Enabled     bool   `json:"enabled"`
 	MaxRequests int    `json:"max_requests"`
 	Duration    string `json:"duration"`
 }
