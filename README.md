@@ -22,8 +22,10 @@ A high-performance REST API service for serving random jokes with built-in cachi
 ## 🛠️ Dependencies
 
 - **Fiber v2** - High-performance web framework for Go
-- **Cache Storage** - Support for Fiber storage
-- **Swagger** - API documentation and UI
+- **Fiber Healthcheck** - Built-in liveness/readiness probe middleware
+- **Fiber Contrib Swagger** - Swagger UI integration for Fiber
+- **Swaggo/Swag** - Swagger documentation generator from annotations
+- **Cache Storage** - Support for Fiber storage (Redis)
 
 See [go.mod](go.mod) for complete dependency list.
 
@@ -33,12 +35,29 @@ See [go.mod](go.mod) for complete dependency list.
 .
 ├── api/                 # API initialization and startup logic
 ├── config/              # Configuration and environment variable handling
+├── controllers/         # HTTP request handlers with Swagger annotations
+│   ├── health.go        # Health check endpoints (readiness, liveness)
+│   ├── jokes.go         # Joke endpoints
+│   └── metadata.go      # Metadata endpoints
+├── docs/                # Auto-generated Swagger documentation
 ├── helpers/             # Utility functions (cache, jokes loading, random selection)
 ├── middleware/          # Request middleware (caching, rate limiting)
-├── models/              # Data structures and configuration types
-├── router/              # Route definitions and handlers registration
-├── services/            # Business logic (jokes, health, metadata, rate limiter)
-├── docs/                # API documentation (Swagger)
+├── models/              # Data structures and types
+│   ├── appConfig.go     # Application configuration model
+│   ├── cacheConfig.go   # Cache configuration model
+│   ├── fiberConfig.go   # Fiber framework configuration model
+│   ├── joke.go          # Joke data model
+│   ├── metadata.go      # Metadata response models
+│   └── readinessHealthStatus.go  # Health status model
+├── router/              # Route definitions and grouping
+│   └── routers.go       # Route registration with versioned API groups
+├── services/            # Business logic layer
+│   ├── health.go        # Health check business logic
+│   ├── jokes.go         # Joke retrieval and caching logic
+│   ├── metadata.go      # Metadata assembly logic
+│   ├── rateLimiter.go   # Rate limiting configuration
+│   └── swagger.go       # Swagger UI setup
+├── utils/               # Utility functions and knobs
 ├── main.go              # Application entry point
 ├── go.mod               # Go module definition
 ├── Dockerfile           # Multi-stage Docker build configuration
@@ -93,19 +112,22 @@ See [go.mod](go.mod) for complete dependency list.
 
 ## 🔌 API Endpoints
 
-### Jokes
+### Jokes (API v1)
 
-- `GET /joke/random` - Returns a random joke with optional caching
+- `GET /v1/jokes/random` - Returns a random joke with optional caching
 
 ### Health Status
 
-- `GET /health/liveness` - Checks if the service is UP
+- `GET /health/liveness` - Checks if the service is UP (uses Fiber's built-in healthcheck)
 - `GET /health/readiness` - Checks if the service is ready (validates Redis and data availability)
 
-### Docs
+### Metadata (API v1)
 
-- `GET /swagger/index.html` - Interactive API documentation powered by Swagger UI
-- `GET /metadata` - Returns application metadata including app settings
+- `GET /v1/metadata` - Returns comprehensive application metadata including version, configuration, and environment information
+
+### Documentation
+
+- `GET /swagger` - Interactive API documentation powered by Swagger UI
 
 ## ⚙️ Configuration
 
@@ -145,6 +167,8 @@ Configure the application using environment variables:
 
 ### Rate Limiting
 
+
+- `RATE_LIMIT_ENABLED` - Control Rate Limit feature via a flag (default: `false`)
 - `RATE_LIMIT_MAX_REQUESTS` - Maximum requests per time window (default: `100`)
 - `RATE_LIMITER_EXPIRATION` - Rate limiter time window (default: `1m`)
 
@@ -198,8 +222,9 @@ Data is fetched from: <https://cdn.jsdelivr.net/gh/JYamazian/cdn-assets@main/ass
 
 ### Health Checks
 
-- Liveness probe validates the application status
-- Readiness probe validates dependencies (Cache, data files)
+- **Liveness probe** - Uses Fiber's built-in healthcheck middleware for optimal performance
+- **Readiness probe** - Custom implementation that validates dependencies (Cache, data files)
+- Follows Controller-Service pattern for consistent architecture
 - Suitable for Kubernetes deployment health checks
 
 ## 🐳 Docker Deployment
@@ -235,12 +260,42 @@ docker run -p 3000:3000 \
 
 - `main.go` - Application entry point
 - `api/init.go` - Fiber app initialization and middleware setup
-- `services/` - HTTP handlers and business logic
+- `controllers/` - HTTP request handlers with Swagger annotations
+- `services/` - Business logic layer (separated from HTTP concerns)
+- `models/` - Data structures and type definitions
 - `helpers/` - Utility functions for jokes, caching, random selection
 - `middleware/` - Custom middleware implementations
 - `config/` - Configuration loading and management
-- `models/` - Type definitions
-- `router/` - Route registration
+- `router/` - Route registration with API versioning
+- `docs/` - Auto-generated Swagger documentation
+
+### Architecture Pattern
+
+The application follows a **Controller-Service-Model** pattern:
+
+```
+Router → Controller → Service → Helper/Middleware
+                ↓
+              Model
+```
+
+- **Controllers** - Handle HTTP requests, validate input, return responses, contain Swagger annotations
+- **Services** - Contain business logic, separated from HTTP concerns
+- **Models** - Define data structures used across the application
+- **Helpers** - Provide utility functions (caching, data loading)
+- **Middleware** - Handle cross-cutting concerns (rate limiting, caching)
+
+### API Versioning
+
+Routes are organized with API versioning:
+
+```
+/v1/jokes/random     → JokeController.GetRandomJoke
+/v1/metadata         → MetadataController.GetMetadata
+/health/readiness    → HealthController.Readiness
+/health/liveness     → Fiber built-in healthcheck middleware
+/swagger             → Swagger UI
+```
 
 ### Building Locally
 
@@ -251,11 +306,13 @@ go build -o jokes-provider main.go
 
 ### Code Organization
 
-- **Services Layer** - HTTP request handlers and business logic
+- **Controllers Layer** - HTTP request handlers with Swagger annotations
+- **Services Layer** - Business logic separated from HTTP concerns
+- **Models Layer** - Data structures and type definitions
 - **Helper Layer** - Reusable utility functions
 - **Middleware Layer** - Request/response processing
 - **Config Layer** - Environment and configuration management
-- **Models Layer** - Data structures
+- **Router Layer** - Route definitions with API versioning and grouping
 
 ## 👤 Author
 

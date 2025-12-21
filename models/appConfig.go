@@ -4,7 +4,6 @@ type AppConfig struct {
 	// Server configuration
 	Port        string
 	Environment string
-	AppHost     string
 
 	// Logging configuration
 	LogLevel         string

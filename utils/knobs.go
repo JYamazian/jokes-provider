@@ -3,7 +3,10 @@ package utils
 import (
 	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 // getEnv retrieves an environment variable or returns a default value
@@ -34,4 +37,10 @@ func GetDurationFromEnv(envVar string, defaultDuration time.Duration) time.Durat
 		return defaultDuration
 	}
 	return duration
+}
+
+// ShouldSkipCache checks if the Cache-Control header contains "no-cache"
+func ShouldSkipCache(c *fiber.Ctx) bool {
+	cacheControl := c.Get(HeaderCacheControl)
+	return strings.Contains(strings.ToLower(cacheControl), CacheControlNoCache)
 }

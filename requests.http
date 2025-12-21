@@ -1,0 +1,31 @@
+### Variables
+@baseUrl = http://localhost:3000
+
+### Get Random Joke
+GET {{baseUrl}}/v1/jokes/random
+
+### Get Random Joke (Skip Cache)
+GET {{baseUrl}}/v1/jokes/random
+Cache-Control: no-cache
+
+### Get Joke by ID
+GET {{baseUrl}}/v1/jokes/10
+
+### Get Joke by ID (Skip Cache)
+GET {{baseUrl}}/v1/jokes/10
+Cache-Control: no-cache
+
+### Get Metadata
+GET {{baseUrl}}/v1/metadata
+
+### Readiness Check
+GET {{baseUrl}}/health/readiness
+
+### Liveness Check
+GET {{baseUrl}}/health/liveness
+
+### Swagger JSON
+GET {{baseUrl}}/docs/swagger.json
+
+### Swagger UI
+GET {{baseUrl}}/swagger

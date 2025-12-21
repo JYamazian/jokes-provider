@@ -3,6 +3,7 @@ package routes
 import (
 	"jokes-provider/controllers"
 	"jokes-provider/services"
+	"jokes-provider/utils"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,23 +16,24 @@ func RegisterRoutes(app *fiber.App) {
 	metadataCtrl := controllers.NewMetadataController()
 
 	// API v1 group
-	v1 := app.Group("/api/v1")
+	v1 := app.Group(utils.APIVersionV1)
 	{
 		// Jokes group
-		jokes := v1.Group("/jokes")
+		jokes := v1.Group(utils.RouteJokes)
 		{
-			jokes.Get("/random", jokeCtrl.GetRandomJoke)
+			jokes.Get(utils.RandomJokeEndpoint, jokeCtrl.GetRandomJoke)
+			jokes.Get(utils.JokeByIDEndpoint, jokeCtrl.GetJokeByID)
 		}
 
 		// Metadata group
-		v1.Get("/metadata", metadataCtrl.GetMetadata)
+		v1.Get(utils.MetadataEndpoint, metadataCtrl.GetMetadata)
 	}
 
 	// Health group (outside API versioning)
-	health := app.Group("/health")
+	health := app.Group(utils.RouteHealth)
 	{
-		health.Get("/readiness", healthCtrl.Readiness)
-		health.Use(healthCtrl.SetupLivenessProbe("/liveness"))
+		health.Get(utils.ReadinessEndpoint, healthCtrl.Readiness)
+		health.Use(healthCtrl.SetupLivenessProbe(utils.LivenessEndpoint))
 	}
 
 	// Swagger

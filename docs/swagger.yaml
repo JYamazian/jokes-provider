@@ -121,27 +121,6 @@ info:
   title: Jokes Provider API
   version: "1.0"
 paths:
-  /api/v1/jokes/random:
-    get:
-      consumes:
-      - application/json
-      description: Returns a random joke from the jokes database. Supports caching.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Random joke object with id and joke fields
-          schema:
-            $ref: '#/definitions/models.Joke'
-        "500":
-          description: Failed to retrieve joke
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Get a random joke
-      tags:
-      - jokes
   /api/v1/metadata:
     get:
       consumes:
@@ -192,6 +171,61 @@ paths:
       summary: Readiness check
       tags:
       - health
+  /v1/jokes/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Returns a specific joke by its ID from the jokes database. Supports
+        caching.
+      parameters:
+      - description: Joke ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Joke object with id and joke fields
+          schema:
+            $ref: '#/definitions/models.Joke'
+        "404":
+          description: Joke not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Failed to retrieve joke
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a joke by ID
+      tags:
+      - jokes
+  /v1/jokes/random:
+    get:
+      consumes:
+      - application/json
+      description: Returns a random joke from the jokes database. Supports caching.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Random joke object with id and joke fields
+          schema:
+            $ref: '#/definitions/models.Joke'
+        "500":
+          description: Failed to retrieve joke
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a random joke
+      tags:
+      - jokes
 securityDefinitions:
   BasicAuth:
     type: basic

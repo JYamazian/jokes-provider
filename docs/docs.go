@@ -24,38 +24,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/jokes/random": {
-            "get": {
-                "description": "Returns a random joke from the jokes database. Supports caching.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "jokes"
-                ],
-                "summary": "Get a random joke",
-                "responses": {
-                    "200": {
-                        "description": "Random joke object with id and joke fields",
-                        "schema": {
-                            "$ref": "#/definitions/models.Joke"
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to retrieve joke",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/metadata": {
             "get": {
                 "description": "Returns comprehensive application metadata including version, configuration, and environment information",
@@ -123,6 +91,88 @@ const docTemplate = `{
                         "description": "Service is not ready",
                         "schema": {
                             "$ref": "#/definitions/models.ReadinessHealthStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/jokes/random": {
+            "get": {
+                "description": "Returns a random joke from the jokes database. Supports caching.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jokes"
+                ],
+                "summary": "Get a random joke",
+                "responses": {
+                    "200": {
+                        "description": "Random joke object with id and joke fields",
+                        "schema": {
+                            "$ref": "#/definitions/models.Joke"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve joke",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/jokes/{id}": {
+            "get": {
+                "description": "Returns a specific joke by its ID from the jokes database. Supports caching.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "jokes"
+                ],
+                "summary": "Get a joke by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Joke ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Joke object with id and joke fields",
+                        "schema": {
+                            "$ref": "#/definitions/models.Joke"
+                        }
+                    },
+                    "404": {
+                        "description": "Joke not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve joke",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
